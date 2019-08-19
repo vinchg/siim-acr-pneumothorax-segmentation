@@ -7,29 +7,55 @@ import random
 import numpy as np
 import cv2
 import pydicom
+from scipy.sparse import csc_matrix, save_npz, load_npz
+import scipy
 
     
 class PneumoniaDataset(torch.utils.data.Dataset):
-    def __init__(self,images, dimsxy=64,train=True, masks=None, transform=True):
+    def __init__(self,df, dims=256,train=True,val=False,transform=False):
         """
         Args:
             text_file(string): path to text file
             root_dir(string): directory with all train images
         """
         self.train = train
-        self.images = images
+        self.val = val
+        self.df = df
         self.transform = transform
         #default dimensions
-        self.dim_x = dimsxy
-        self.dim_y = dimsxy
-        if self.train:
-            self.masks = masks
-            
-    def transform_(self, image, mask):
-#         print('transform')
-
+        self.dims = dims
+        self.dims = dims
         
-        randy = random.randint(0,7)
+        
+            
+    def resize(self, idx):     
+        img = pydicom.dcmread(self.df.iloc[idx]['file_path']).pixel_array
+        img = scipy.misc.imresize(img, (self.dims,self.dims))
+
+        if self.train:
+            if self.df.iloc[idx]['has_pneumothorax']:
+                mk = load_npz('siim/mask/'+self.df.iloc[idx]['id']+'.npz').todense().astype('uint8')
+                mk[mk>0]=1
+                mk = scipy.misc.imresize(mk,(self.dims,self.dims)).astype('uint8')
+                return img/255, mk
+            else:
+                mk = np.zeros((self.dims, self.dims), dtype=np.uint8)
+                return img/255, mk
+        else:
+            return img/255
+    
+    def sample(self):
+        #the dataset was split where the first 1903 samples are pos and the rest are neg
+        pos = 1903
+        neg = 1904
+        randy = random.randint(0,4)
+        if randy==4:
+            return random.randint(neg, len(self.df)-1)
+        else: return random.randint(0,pos)
+
+    def transform_(self, image, mask):
+#         print('transform')        
+        randy = random.randint(0,6)
             
         if randy == 0:
             pass #nothing, just a normal image
@@ -72,8 +98,8 @@ class PneumoniaDataset(torch.utils.data.Dataset):
             
 #
         #need to reshape here before using iaa augs
-        image = image.reshape(1,self.dim_x, self.dim_y)
-        mask = mask.reshape(1,self.dim_x, self.dim_y)
+        image = image.reshape(1,self.dims, self.dims)
+        mask = mask.reshape(1,self.dims, self.dims)
 #         https://imgaug.readthedocs.io/en/latest/source/augmenters.html
         
         if self.transform:
@@ -89,18 +115,46 @@ class PneumoniaDataset(torch.utils.data.Dataset):
         return image, mask
 
     def __len__(self):
-        return len(self.images)
+        return len(self.df)
 
     def __getitem__(self, idx):
-        image = self.images[idx]
-        
+        # print('idx:',idx)
         if self.train:
-            mask = self.masks[idx]
-            return self.transform_(image, mask)
+            
+            if self.val:
+                img, mk = self.resize(idx)
+                img = img.reshape(1,self.dims, self.dims)
+                mk = mk.reshape(1,self.dims, self.dims)
+                return img, mk
+            
+            # print('about to sample')
+            idx = self.sample()
+            # print('new sample', idx)
+            img, mk = self.resize(idx)
+            img, mk = self.transform_(img, mk)
+            # print(img.shape, mk.shape)
+            return img, mk
         
-        image = image.reshape(1,self.dim_x, self.dim_y)
-        return image
+        # print('made it outside')
+        img = self.resize(idx)
+        img = img.reshape(1,self.dims, self.dims)
+        return img
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class PneumoniaDataset_test(torch.utils.data.Dataset):
