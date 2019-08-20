@@ -1,4 +1,6 @@
 exp3_512 with one less conv in the thicc part
+augs: random flips
+
 Threshold at .5 score= .698
 Threshold at .6 score= .7503
 Threshold at .7 score= .7734
@@ -14,10 +16,18 @@ about 25 epochs..about 10:30 each
 
 ==================================================================
 ==================================================================
-exp4_512 full thicc
+exp4_512 full thicc  (vloss:0.012359)
 model = Thicc_Net([2,2,2,2]) 
+augs: flip up down only
 
 Threshold at .5 score = .7401
 Threshold at .6 score
 Threshold at .7 score
 Threshold at .8 score
+
+
+==================================================================
+==================================================================
+exp5_1024 full thicc pretrained on 512
+fine tune, lr:.001
+
