@@ -40,8 +40,8 @@ def train_loop(train_loader, val_loader, model, optimizer, scheduler,
         count = 0
         for images, labels in train_loader:
             
-            images = Variable(images).to(device)
-            labels = labels.long()
+            images = Variable(images.float()).to(device)
+            labels = labels.float()
             
             labels = Variable(labels).to(device)
             
@@ -65,9 +65,9 @@ def train_loop(train_loader, val_loader, model, optimizer, scheduler,
         count = 0
         val_running_loss = 0.0
         for images, labels in val_loader:
-            images = Variable(images).to(device)
+            images = Variable(images.float()).to(device)
             labels = Variable(labels).to(device)   
-            labels = labels.long()
+            labels = labels.float()
             
 #             print('img',images.shape)
 #             print('lab', labels.shape)
