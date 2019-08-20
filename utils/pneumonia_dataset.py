@@ -26,7 +26,30 @@ class PneumoniaDataset(torch.utils.data.Dataset):
         self.dims = dims
         self.dims = dims
         
+    def cropPad(self,imgs, lbls):
+        augmenters_imgs = [
+        iaa.CropAndPad(percent=(-0.3, 0.3)
+        )]                           
         
+        seq_imgs = iaa.Sequential(augmenters_imgs, random_order=False)        
+        seq_imgs_deterministic = seq_imgs.to_deterministic()
+
+        imgs_aug = seq_imgs_deterministic.augment_images(imgs)
+        masks_aug = seq_imgs_deterministic.augment_images(lbls)
+        return imgs_aug, masks_aug
+
+    def affine(self,imgs, lbls):
+        augmenters_imgs = [
+        iaa.PiecewiseAffine(scale=(.01,.07)
+        )]                           
+        
+        seq_imgs = iaa.Sequential(augmenters_imgs, random_order=False)        
+        seq_imgs_deterministic = seq_imgs.to_deterministic()
+
+        imgs_aug = seq_imgs_deterministic.augment_images(imgs)
+        masks_aug = seq_imgs_deterministic.augment_images(lbls)
+        return imgs_aug, masks_aug
+       
             
     def resize(self, idx):     
         img = pydicom.dcmread(self.df.iloc[idx]['file_path']).pixel_array
@@ -48,14 +71,14 @@ class PneumoniaDataset(torch.utils.data.Dataset):
         #the dataset was split where the first 1903 samples are pos and the rest are neg
         pos = 1903
         neg = 1904
-        randy = random.randint(0,4)
-        if randy==4:
+        randy = random.randint(0,6)
+        if randy==6:
             return random.randint(neg, len(self.df)-1)
         else: return random.randint(0,pos)
 
     def transform_(self, image, mask):
 #         print('transform')        
-        randy = random.randint(0,6)
+        randy = random.randint(0,2)
             
         if randy == 0:
             pass #nothing, just a normal image
@@ -68,33 +91,7 @@ class PneumoniaDataset(torch.utils.data.Dataset):
         #flip up or down only
         if randy ==2:
             image = np.flipud(image).copy()
-            mask = np.flipud(mask).copy()
-
-        #rotate 90 degrees
-        if randy ==3:
-            image = np.rot90(image).copy()
-            mask = np.rot90(mask).copy()
-            
-        #flip lr and up
-        if randy ==4:
-            image = np.fliplr(image).copy()
-            mask = np.fliplr(mask).copy()
-            image = np.flipud(image).copy()
-            mask = np.flipud(mask).copy()
-            
-        if randy ==5:
-            image = np.fliplr(image).copy()
-            mask = np.fliplr(mask).copy()
-            image = np.rot90(image).copy()
-            mask = np.rot90(mask).copy()
-        
-        if randy ==6:
-            image = np.flipud(image).copy()
-            mask = np.flipud(mask).copy()
-            image = np.rot90(image).copy()
-            mask = np.rot90(mask).copy()
-        
-        
+            mask = np.flipud(mask).copy()             
             
 #
         #need to reshape here before using iaa augs
@@ -103,14 +100,20 @@ class PneumoniaDataset(torch.utils.data.Dataset):
 #         https://imgaug.readthedocs.io/en/latest/source/augmenters.html
         
         if self.transform:
-            if random.random() > .8:
+            randy = random.randint(0,3)
+            if randy == 0:
                 aug = iaa.GaussianBlur(sigma=(1.0,2.0))
                 image = aug.augment_images(image)
     
-            if random.random() > .9:
+            if randy == 1:
                 aug = iaa.PiecewiseAffine(scale=(.01,.06))
                 image = aug.augment_images(image)
             
+            if randy == 2:
+                image, mask = self.cropPad(image,mask)
+
+            if randy == 3:
+                pass           
             
         return image, mask
 

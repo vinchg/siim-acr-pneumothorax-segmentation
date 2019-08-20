@@ -143,3 +143,40 @@ def saveMask(df):
         
         sprse = csc_matrix(mask_)
         save_npz('siim/mask/'+df.iloc[i]['id'], sprse)
+
+
+def sampleImage(df,imgNum, sz=10):
+    dat = pydicom.dcmread(df.iloc[imgNum]['file_path']).pixel_array
+    plt.figure()
+    plt.subplots(figsize=(sz,sz))
+    plt.imshow(dat, cmap='gray')
+    
+    if df.iloc[imgNum]['has_pneumothorax']:
+        mk = load_npz('siim/mask/'+df.iloc[imgNum]['id']+'.npz').todense().astype('uint8')
+        mk[mk>0]=1    
+        plt.imshow(mk, alpha=.4)
+    plt.show()
+
+def image(img, lb=None, sz=10,color='gray'):
+    plt.figure()
+    plt.subplots(figsize=(sz,sz))
+    plt.imshow(img, cmap=color)
+    if lb is not None:
+        plt.imshow(lb, alpha=.4, cmap='prism')
+    plt.show()
+
+def image_grid(img,mask=None, grid_x=4, grid_y=5,fig_size=(18,18)):
+   
+    fig, axes = plt.subplots(grid_x,grid_y, figsize=fig_size,
+                         subplot_kw={'xticks': [], 'yticks': []})
+    fig.subplots_adjust(hspace=0.05, wspace=0.05)
+
+    for ax, i in zip(axes.flat, range(len(img))):
+        
+        if mask is not None:
+            ax.imshow(img[i], cmap='gray')
+            ax.imshow(mask[i], alpha=.4)
+        else:
+            ax.imshow(img[i], cmap='gray')
+    plt.show()
+    
