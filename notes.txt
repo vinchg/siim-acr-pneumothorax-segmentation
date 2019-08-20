@@ -1,0 +1,23 @@
+exp3_512 with one less conv in the thicc part
+Threshold at .5 score= .698
+Threshold at .6 score= .7503
+Threshold at .7 score= .7734
+Threshold at .8 score= .7834
+
+model = Thicc_Net([2,2,2,2]) 
+criterion = nn.BCEWithLogitsLoss()
+learning_rate = 0.01
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+about 25 epochs..about 10:30 each
+
+
+==================================================================
+==================================================================
+exp4_512 full thicc
+model = Thicc_Net([2,2,2,2]) 
+
+Threshold at .5 score = .7401
+Threshold at .6 score
+Threshold at .7 score
+Threshold at .8 score
