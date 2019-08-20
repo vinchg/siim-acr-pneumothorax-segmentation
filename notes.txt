@@ -2,7 +2,7 @@ exp3_512 with one less conv in the thicc part
 Threshold at .5 score= .698
 Threshold at .6 score= .7503
 Threshold at .7 score= .7734
-Threshold at .8 score= .7834
+Threshold at .8 score= .7857
 
 model = Thicc_Net([2,2,2,2]) 
 criterion = nn.BCEWithLogitsLoss()
