@@ -1,3 +1,3 @@
-/data/sample*
-/data/dicom-images-*
-/data/train-rle.csv
+/siim/sample*
+/siim/dicom-images-*
+/siim/train-rle.csv
