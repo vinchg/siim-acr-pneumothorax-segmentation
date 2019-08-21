@@ -86,8 +86,8 @@ class PneumoniaDataset(torch.utils.data.Dataset):
         #the dataset was split where the first 1903 samples are pos and the rest are neg
         pos = 1903
         neg = 1904
-        randy = random.randint(0,6)
-        if randy==6:
+        randy = random.randint(0,4)
+        if randy==4:
             return random.randint(neg, len(self.df)-1)
         else: return random.randint(0,pos)
 
@@ -115,19 +115,16 @@ class PneumoniaDataset(torch.utils.data.Dataset):
 #         https://imgaug.readthedocs.io/en/latest/source/augmenters.html
         
         if self.transform:
-            randy = random.randint(0,3)
-            if randy == 0:
+            randy = random.randint(0,99)
+            if randy > 75:
                 aug = iaa.GaussianBlur(sigma=(1.0,2.0))
                 image = aug.augment_images(image)
     
-            if randy == 1:
-                aug = iaa.PiecewiseAffine(scale=(.01,.06))
-                image = aug.augment_images(image)
-            
-            if randy == 2:
-                image, mask = self.cropPad(image,mask)
+            # if randy == 1:
+            #     aug = iaa.PiecewiseAffine(scale=(.01,.06))
+            #     image = aug.augment_images(image)
 
-            if randy == 3:
+            else:
                 pass           
             
         return image, mask
@@ -168,6 +165,8 @@ class PneumoniaDataset(torch.utils.data.Dataset):
 
 
     def __len__(self):
+        if len(self.df) > 3000:
+            return 4000
         return len(self.df)
 
     def __getitem__(self, idx):
@@ -175,7 +174,7 @@ class PneumoniaDataset(torch.utils.data.Dataset):
         if self.train:
           
             if self.val:
-                print('idx',idx)
+                # print('idx',idx)
                 img, mk = self.getImage(idx)
                 img, mk = self.getPatches(img, mk)
                 img = np.expand_dims(img, axis=1)
@@ -193,6 +192,12 @@ class PneumoniaDataset(torch.utils.data.Dataset):
             img, mk = self.getPatches(img, mk)
             img = np.expand_dims(img, axis=1)
             mk = np.expand_dims(mk, axis=1)
+            
+            for i in range(img.shape[0]): # should be size of miniBatch
+                randy = random.randint(0,99)
+                if randy >70:
+                    img[i], mk[i] = self.cropPad(img[i], mk[i])
+            
 
             return img, mk
         
