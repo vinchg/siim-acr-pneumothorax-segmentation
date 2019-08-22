@@ -157,7 +157,7 @@ def sampleImage(df,imgNum, sz=10):
         plt.imshow(mk, alpha=.4)
     plt.show()
 
-def image(img, lb=None, sz=10,color='gray'):
+def image(img, lb=None,alpha=.4, sz=10,color='gray'):
     plt.figure()
     plt.subplots(figsize=(sz,sz))
     plt.imshow(img, cmap=color)
@@ -165,7 +165,7 @@ def image(img, lb=None, sz=10,color='gray'):
         plt.imshow(lb, alpha=.4, cmap='prism')
     plt.show()
 
-def image_grid(img,mask=None, grid_x=4, grid_y=5,fig_size=(18,18)):
+def image_grid(img,mask=None, grid_x=4, grid_y=4,fig_size=(18,18)):
    
     fig, axes = plt.subplots(grid_x,grid_y, figsize=fig_size,
                          subplot_kw={'xticks': [], 'yticks': []})

@@ -12,9 +12,21 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import datetime
 from tqdm import tnrange, tqdm_notebook
+import numpy as np
 '''
 save_best and save_last are paths
+
 '''
+
+def dice(input_, target):
+    smooth = 1
+    input_ = input_.view(-1)
+    target = target.view(-1)
+    
+    return (1-2*((input_*target).sum()+smooth)/(input_.sum()+target.sum()+smooth))
+
+
+
 def train_loop(train_loader, val_loader, model, optimizer, scheduler, 
                criterion,save_best, save_last, epochs):   
 
@@ -42,8 +54,12 @@ def train_loop(train_loader, val_loader, model, optimizer, scheduler,
         count = 0
         for images, labels in tqdm_notebook(train_loader):
 
-            images = images.squeeze(dim=0)
-            labels = labels.squeeze(dim=0)
+            # images = images.squeeze(dim=0)
+            # labels = labels.squeeze(dim=0)
+            dims = images[0].shape[2]
+            images = np.reshape(images, (-1,1,dims,dims))
+            labels = np.reshape(labels, (-1,1,dims,dims))
+
             # print('top', images.shape, labels.shape)
 
 
@@ -57,7 +73,10 @@ def train_loop(train_loader, val_loader, model, optimizer, scheduler,
             
             outputs = model(images)            
             optimizer.zero_grad()
-            loss = criterion(outputs, labels)
+            bce  = criterion(outputs, labels)
+            diceL = dice(outputs, labels)
+            loss = bce + diceL
+
             loss.backward()
             optimizer.step()        
             
@@ -73,8 +92,11 @@ def train_loop(train_loader, val_loader, model, optimizer, scheduler,
         val_running_loss = 0.0
         for images, labels in tqdm_notebook(val_loader):
 
-            images = images.squeeze(dim=0)
-            labels = labels.squeeze(dim=0)
+            # images = images.squeeze(dim=0)
+            # labels = labels.squeeze(dim=0)
+            dims = images[0].shape[2]
+            images = np.reshape(images, (-1,1,dims,dims))
+            labels = np.reshape(labels, (-1,1,dims,dims))
             
             images = Variable(images.float()).to(device)
             labels = Variable(labels).to(device)   
@@ -84,7 +106,9 @@ def train_loop(train_loader, val_loader, model, optimizer, scheduler,
 #             print('lab', labels.shape)
             
             outputs = model(images)
-            loss = criterion(outputs, labels)
+            bce  = criterion(outputs, labels)
+            diceL = dice(outputs, labels)
+            loss = bce + diceL
             
             val_running_loss += loss.item()
             count +=1

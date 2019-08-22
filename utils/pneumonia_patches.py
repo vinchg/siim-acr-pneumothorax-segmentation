@@ -42,7 +42,7 @@ class PneumoniaDataset(torch.utils.data.Dataset):
 
     def affine(self,imgs, lbls):
         augmenters_imgs = [
-        iaa.PiecewiseAffine(scale=(.01,.07)
+        iaa.Affine(scale=(.7,1)
         )]                           
         
         seq_imgs = iaa.Sequential(augmenters_imgs, random_order=False)        
@@ -115,15 +115,14 @@ class PneumoniaDataset(torch.utils.data.Dataset):
 #         https://imgaug.readthedocs.io/en/latest/source/augmenters.html
         
         if self.transform:
-            randy = random.randint(0,99)
-            if randy > 75:
+            randy = random.randint(0,3)
+            if randy ==0:
                 aug = iaa.GaussianBlur(sigma=(1.0,2.0))
                 image = aug.augment_images(image)
     
-            # if randy == 1:
-            #     aug = iaa.PiecewiseAffine(scale=(.01,.06))
-            #     image = aug.augment_images(image)
-
+            if randy == 1:
+                image, mask = self.affine(image, mask)
+            
             else:
                 pass           
             
@@ -157,8 +156,8 @@ class PneumoniaDataset(torch.utils.data.Dataset):
                 Y_train[i] = mk[x-half:x+half,y-half:y+half]
         else:
             for i in range(sz):                
-                x= np.random.randint(128,896)
-                y= np.random.randint(128,896)                
+                x= np.random.randint(half,1024-half)
+                y= np.random.randint(half,1024-half)                
                 X_train[i] = img[x-half:x+half,y-half:y+half]               
 
         return X_train, Y_train
